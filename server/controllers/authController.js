@@ -2,13 +2,14 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// =====================
+// ==============================
 // Register User
-// =====================
+// ==============================
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // Validation
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -16,6 +17,7 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Check Existing User
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -25,16 +27,21 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create User
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
     });
 
+    // Generate Token
     const token = jwt.sign(
-      { id: user._id },
+      {
+        id: user._id,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
@@ -55,16 +62,20 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
+
+    console.log(error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Server Error",
     });
+
   }
 };
 
-// =====================
+// ==============================
 // Login User
-// =====================
+// ==============================
 exports.login = async (req, res) => {
   try {
 
@@ -77,6 +88,7 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Find User
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -86,17 +98,24 @@ exports.login = async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Compare Password
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid Credentials",
+        message: "Invalid Password",
       });
     }
 
+    // Generate JWT
     const token = jwt.sign(
-      { id: user._id },
+      {
+        id: user._id,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
@@ -118,17 +137,19 @@ exports.login = async (req, res) => {
 
   } catch (error) {
 
+    console.log(error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Server Error",
     });
 
   }
 };
 
-// =====================
-// Get Profile
-// =====================
+// ==============================
+// Get User Profile
+// ==============================
 exports.getProfile = async (req, res) => {
   try {
 
@@ -139,9 +160,11 @@ exports.getProfile = async (req, res) => {
 
   } catch (error) {
 
+    console.log(error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Server Error",
     });
 
   }
