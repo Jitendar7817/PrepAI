@@ -8,14 +8,18 @@ dotenv.config();
 // Database Connection
 const connectDB = require("./config/db");
 
+// ==========================
 // Import Routes
+// ==========================
+
 const authRoutes = require("./routes/authRoutes");
-const interviewRoutes = require("./routes/interviewRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
-const codingRoutes = require("./routes/codingRoutes");
+
+// IMPORTANT: Linux is case-sensitive
+const codingRoutes = require("./routes/CodingRoutes");
 const hrRoutes = require("./routes/hrRoutes");
-const finalReportRoutes = require("./routes/finalReportRoutes");
+const finalReportRoutes = require("./routes/FinalReportRoutes");
 
 // Initialize Express
 const app = express();
@@ -27,20 +31,20 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
+// ==========================
 // Home Route
+// ==========================
+
 app.get("/", (req, res) => {
   res.send("🚀 PrepAI Backend Running...");
 });
 
-// =====================================
+// ==========================
 // API Routes
-// =====================================
+// ==========================
 
 // Authentication
 app.use("/api/auth", authRoutes);
-
-// Interview
-app.use("/api/interview", interviewRoutes);
 
 // AI Interview
 app.use("/api/ai", aiRoutes);
@@ -57,9 +61,10 @@ app.use("/api/hr", hrRoutes);
 // Final Placement Report
 app.use("/api/final-report", finalReportRoutes);
 
-// =====================================
+// ==========================
 // 404 Route
-// =====================================
+// ==========================
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -67,9 +72,10 @@ app.use((req, res) => {
   });
 });
 
-// =====================================
+// ==========================
 // Start Server
-// =====================================
+// ==========================
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
