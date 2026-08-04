@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import {
   FaRobot,
@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 import API from "../services/api";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ function Login() {
       toast.success("Login Successful");
 
       // Redirect Dashboard
-      window.location.href = "/dashboard";
+      navigate("/dashboard");
 
     } catch (error) {
 
