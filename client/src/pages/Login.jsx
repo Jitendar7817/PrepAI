@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaRobot,
+  FaArrowRight,
+  FaShieldAlt,
+} from "react-icons/fa";
 import toast from "react-hot-toast";
 import API from "../services/api";
 
@@ -63,15 +68,42 @@ function Login() {
 
       <div className="login-card">
 
-        <h1 className="logo">
-          PrepAI
-        </h1>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "15px",
+          }}
+        >
+          <FaRobot
+            size={48}
+            color="#38bdf8"
+          />
 
-        <h2>
+          <h1 className="logo">
+            PrepAI
+          </h1>
+        </div>
+
+        <h2
+          style={{
+            fontSize: "30px",
+            marginBottom: "8px",
+            color: "#fff"
+          }}
+        >
           Welcome Back 👋
         </h2>
 
-        <p className="subtitle">
+        <p
+          className="subtitle"
+          style={{
+            color: "#94a3b8",
+            lineHeight: "28px"
+          }}
+        >
           Sign in to continue your AI Interview Journey
         </p>
 
@@ -123,17 +155,33 @@ function Login() {
           <button
             className="login-btn"
             disabled={loading}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "10px"
+            }}
           >
             {
               loading
                 ? "Logging In..."
-                : "Login"
+                : <>
+                    Login
+                    <FaArrowRight />
+                  </>
             }
           </button>
 
         </form>
 
         <p className="register-text">
+
+          <FaShieldAlt
+            style={{
+              marginRight: "8px",
+              color: "#38bdf8"
+            }}
+          />
 
           Don't have an account?
 

@@ -1,57 +1,127 @@
 const mongoose = require("mongoose");
 
+// =====================================
+// Question Schema
+// =====================================
+
+const questionSchema = new mongoose.Schema(
+  {
+    question: {
+      type: String,
+      required: true,
+    },
+
+    answer: {
+      type: String,
+      default: "",
+    },
+
+    feedback: {
+      type: String,
+      default: "",
+    },
+
+    score: {
+      type: Number,
+      default: 0,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+// =====================================
+// Interview Schema
+// =====================================
+
 const interviewSchema = new mongoose.Schema(
   {
+    // User
+
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
+    // Interview Title
+
     title: {
       type: String,
       required: true,
     },
+
+    // Role / Category
 
     category: {
       type: String,
       required: true,
     },
 
+    role: {
+      type: String,
+      default: "Software Engineer",
+    },
+
+    // Company
+
+    company: {
+      type: String,
+      default: "General",
+    },
+
+    // Difficulty
+
     difficulty: {
       type: String,
       enum: ["Easy", "Medium", "Hard"],
-      default: "Easy",
+      default: "Medium",
     },
 
-    questions: [
-      {
-        question: {
-          type: String,
-          required: true,
-        },
+    // Language
 
-        answer: {
-          type: String,
-          default: "",
-        },
+    language: {
+      type: String,
+      default: "English",
+    },
 
-        feedback: {
-          type: String,
-          default: "",
-        },
+    // Number of Questions
 
-        score: {
-          type: Number,
-          default: 0,
-        },
-      },
-    ],
+    questionCount: {
+      type: Number,
+      default: 10,
+    },
+
+    // Selected Topics
+
+    topics: {
+      type: [String],
+      default: [],
+    },
+
+    // Interview Duration
+
+    interviewTime: {
+      type: Number,
+      default: 15,
+    },
+
+    // Questions
+
+    questions: {
+      type: [questionSchema],
+      default: [],
+    },
+
+    // Overall Score
 
     totalScore: {
       type: Number,
       default: 0,
     },
+
+    // AI Feedback
 
     strengths: {
       type: [String],
@@ -68,9 +138,15 @@ const interviewSchema = new mongoose.Schema(
       default: [],
     },
 
+    // Status
+
     status: {
       type: String,
-      enum: ["Pending", "In Progress", "Completed"],
+      enum: [
+        "Pending",
+        "In Progress",
+        "Completed",
+      ],
       default: "Pending",
     },
   },

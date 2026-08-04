@@ -13,6 +13,9 @@ const authRoutes = require("./routes/authRoutes");
 const interviewRoutes = require("./routes/interviewRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
+const codingRoutes = require("./routes/codingRoutes");
+const hrRoutes = require("./routes/hrRoutes");
+const finalReportRoutes = require("./routes/finalReportRoutes");
 
 // Initialize Express
 const app = express();
@@ -29,9 +32,9 @@ app.get("/", (req, res) => {
   res.send("🚀 PrepAI Backend Running...");
 });
 
-// =========================
+// =====================================
 // API Routes
-// =========================
+// =====================================
 
 // Authentication
 app.use("/api/auth", authRoutes);
@@ -45,9 +48,18 @@ app.use("/api/ai", aiRoutes);
 // Resume Analyzer
 app.use("/api/resume", resumeRoutes);
 
-// =========================
+// Coding Round
+app.use("/api/coding", codingRoutes);
+
+// HR Interview
+app.use("/api/hr", hrRoutes);
+
+// Final Placement Report
+app.use("/api/final-report", finalReportRoutes);
+
+// =====================================
 // 404 Route
-// =========================
+// =====================================
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -55,9 +67,9 @@ app.use((req, res) => {
   });
 });
 
-// =========================
+// =====================================
 // Start Server
-// =========================
+// =====================================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

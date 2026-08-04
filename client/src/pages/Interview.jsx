@@ -2,13 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 
 // ===========================
 // Constants
 // ===========================
-const INTERVIEW_DURATION_SECONDS = 20 * 60; // 20 minutes
+
 const STORAGE_KEY_INTERVIEW = "interview";
-//const STORAGE_KEY_ANSWERS = "answers";
+const STORAGE_KEY_START_TIME = "interviewStartTime";
+const STORAGE_KEY_ANSWERS = "answers";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ===========================
@@ -31,6 +35,21 @@ function loadInterview() {
   } catch (err) {
     console.error("Failed to parse interview from localStorage:", err);
     return null;
+  }
+}
+
+function loadAnswers() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ANSWERS);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+
+    return parsed;
+  } catch (err) {
+    console.error("Failed to parse answers from localStorage:", err);
+    return {};
   }
 }
 
@@ -175,12 +194,37 @@ function Interview() {
   // Loaded once on mount; guards against corrupted/missing localStorage data.
   const [interview] = useState(() => loadInterview());
 
+  // Persist interview start time so refreshing the page doesn't reset the countdown.
+  useEffect(() => {
+    if (!interview) return;
+
+    let startTime = localStorage.getItem(STORAGE_KEY_START_TIME);
+
+    if (!startTime) {
+      localStorage.setItem(
+        STORAGE_KEY_START_TIME,
+        Date.now().toString()
+      );
+    }
+  }, [interview]);
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(INTERVIEW_DURATION_SECONDS);
+  const [answers, setAnswers] = useState(() => loadAnswers());
+  const [timeLeft, setTimeLeft] = useState(() => {
+  const interview = loadInterview();
+
+  return (interview?.interviewTime || 15) * 60;
+});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hasSubmittedRef = useRef(false);
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
   // ===========================
   // Redirect if interview missing/invalid
@@ -264,6 +308,9 @@ function Interview() {
 
       console.log("Navigating to /report");
 
+      localStorage.removeItem(STORAGE_KEY_START_TIME);
+      localStorage.removeItem(STORAGE_KEY_ANSWERS);
+
       navigate("/report");
     } catch (error) {
       console.error("Submit Error:", error);
@@ -280,30 +327,113 @@ function Interview() {
   // Timer countdown
   // ===========================
   useEffect(() => {
-  if (!interview) return;
+    if (!interview) return;
 
-  if (timeLeft <= 0) {
-    queueMicrotask(() => {
-      handleSubmit();
-    });
-    return;
-  }
+    const totalSeconds = (interview.interviewTime || 15) * 60;
 
-  const timerId = setTimeout(() => {
-    setTimeLeft((prev) => prev - 1);
-  }, 1000);
+    const startTime = Number(
+      localStorage.getItem(STORAGE_KEY_START_TIME)
+    );
 
-  return () => clearTimeout(timerId);
-}, [timeLeft, interview, handleSubmit]);
+    const updateTimer = () => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+      const remaining = totalSeconds - elapsed;
+
+      if (remaining <= 0) {
+        setTimeLeft(0);
+        handleSubmit();
+        return;
+      }
+
+      setTimeLeft(remaining);
+    };
+
+    updateTimer();
+
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [interview, handleSubmit]);
 
   // ===========================
   // Answer change handler
   // ===========================
   const handleAnswerChange = (e) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [currentQuestion]: e.target.value,
-    }));
+    setAnswers((prev) => {
+      const updatedAnswers = {
+        ...prev,
+        [currentQuestion]: e.target.value,
+      };
+
+      localStorage.setItem(
+        STORAGE_KEY_ANSWERS,
+        JSON.stringify(updatedAnswers)
+      );
+
+      return updatedAnswers;
+    });
+  };
+
+  // ===========================================
+  // Start Voice Recording
+  // ===========================================
+  const startRecording = () => {
+    resetTranscript();
+
+    SpeechRecognition.startListening({
+      continuous: true,
+      language: "en-US",
+    });
+
+    toast.success("Listening...");
+  };
+
+  // ===========================================
+  // Stop Voice Recording
+  // ===========================================
+  const stopRecording = () => {
+    SpeechRecognition.stopListening();
+
+    // Fill textarea from the speech transcript once recording stops.
+    // Done here (event handler) instead of a useEffect, so we don't
+    // trigger a setState-in-effect cascade.
+    if (transcript) {
+      setAnswers((prev) => {
+        const updatedAnswers = {
+          ...prev,
+          [currentQuestion]: transcript,
+        };
+
+        localStorage.setItem(
+          STORAGE_KEY_ANSWERS,
+          JSON.stringify(updatedAnswers)
+        );
+
+        return updatedAnswers;
+      });
+    }
+
+    toast.success("Recording Stopped");
+  };
+
+  // ===========================================
+  // AI Read Question
+  // ===========================================
+  const speakQuestion = () => {
+    if (!interview) return;
+
+    window.speechSynthesis.cancel();
+
+    const speech = new SpeechSynthesisUtterance(
+      interview.questions[currentQuestion].question
+    );
+
+    speech.lang = "en-US";
+    speech.rate = 1;
+    speech.pitch = 1;
+
+    window.speechSynthesis.speak(speech);
   };
 
   // ===========================
@@ -319,6 +449,17 @@ function Interview() {
       Math.min(interview.questions.length - 1, prev + 1)
     );
   };
+
+  // ===========================
+  // Guard: browser support
+  // ===========================
+  if (!browserSupportsSpeechRecognition) {
+    return (
+      <div style={styles.loadingScreen}>
+        Speech Recognition is not supported in this browser.
+      </div>
+    );
+  }
 
   // ===========================
   // Guard: loading / redirect state
@@ -340,14 +481,14 @@ function Interview() {
             Question {currentQuestion + 1} of {interview.questions.length}
           </p>
         </div>
-        <div
-          style={{
-            ...styles.timerBadge,
-            ...(timeLeft <= 60 ? styles.timerBadgeLow : {}),
-          }}
-        >
-          {formatTime(timeLeft)}
-        </div>
+       <div
+  style={{
+    ...styles.timerBadge,
+    ...(timeLeft <= 60 ? styles.timerBadgeLow : {}),
+  }}
+>
+  ⏰ {formatTime(timeLeft)}
+</div>
       </div>
 
       <div style={styles.progressWrapper}>
@@ -370,6 +511,58 @@ function Interview() {
           onChange={handleAnswerChange}
           placeholder="Type your answer here..."
         />
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            marginTop: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            onClick={speakQuestion}
+            style={{
+              padding: "12px 20px",
+              background: "#8b5cf6",
+              color: "white",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+            }}
+          >
+            🔊 Read Question
+          </button>
+
+          {!listening ? (
+            <button
+              onClick={startRecording}
+              style={{
+                padding: "12px 20px",
+                background: "#16a34a",
+                color: "white",
+                border: "none",
+                borderRadius: "10px",
+                cursor: "pointer",
+              }}
+            >
+              🎤 Start Recording
+            </button>
+          ) : (
+            <button
+              onClick={stopRecording}
+              style={{
+                padding: "12px 20px",
+                background: "#dc2626",
+                color: "white",
+                border: "none",
+                borderRadius: "10px",
+                cursor: "pointer",
+              }}
+            >
+              🛑 Stop Recording
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={styles.navRow}>

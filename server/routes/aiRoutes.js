@@ -9,6 +9,7 @@ const {
   submitInterview,
   testAI,
   getInterviewHistory,
+  getDashboardStats,
 } = require("../controllers/aiController");
 
 // =====================================
@@ -30,5 +31,10 @@ router.post("/:id/submit", protect, submitInterview);
 // Interview History
 // =====================================
 router.get("/history/:userId", protect, getInterviewHistory);
+
+// =====================================
+// Dashboard Statistics
+// =====================================
+router.get("/dashboard/:userId", protect, getDashboardStats);
 
 module.exports = router;

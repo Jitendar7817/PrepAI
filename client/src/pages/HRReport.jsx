@@ -3,16 +3,16 @@ import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-function Report() {
+function HRReport() {
   const navigate = useNavigate();
 
   const evaluation = useMemo(() => {
-    const data = localStorage.getItem("evaluation");
+    const data = localStorage.getItem("hrEvaluation");
     return data ? JSON.parse(data) : null;
   }, []);
 
   const interview = useMemo(() => {
-    const data = localStorage.getItem("completedInterview");
+    const data = localStorage.getItem("hrInterview");
     return data ? JSON.parse(data) : null;
   }, []);
 
@@ -35,7 +35,7 @@ function Report() {
           fontSize: "28px",
         }}
       >
-        Loading Report...
+        Loading HR Report...
       </div>
     );
   }
@@ -57,19 +57,18 @@ function Report() {
     const doc = new jsPDF();
 
     doc.setFontSize(22);
-    doc.text("PrepAI - AI Interview Report", 20, 20);
+    doc.text("PrepAI - HR Interview Report", 20, 20);
 
     doc.setFontSize(14);
-    doc.text(`Interview : ${interview.title}`, 20, 35);
-    doc.text(`Category : ${interview.category}`, 20, 45);
-    doc.text(`Difficulty : ${interview.difficulty}`, 20, 55);
-    doc.text(`Overall Score : ${score}%`, 20, 65);
+
+    doc.text(`Company : ${interview.company}`, 20, 35);
+    doc.text(`Overall Score : ${score}/100`, 20, 45);
 
     doc.setFontSize(16);
-    doc.text("Strengths", 20, 85);
+    doc.text("Strengths", 20, 65);
 
     autoTable(doc, {
-      startY: 90,
+      startY: 70,
       head: [["Strength"]],
       body: (evaluation.strengths || []).map((item) => [item]),
     });
@@ -108,7 +107,7 @@ function Report() {
       ]),
     });
 
-    doc.save("PrepAI_Report.pdf");
+    doc.save("PrepAI_HR_Report.pdf");
   };
 
   const styles = {
@@ -178,15 +177,16 @@ function Report() {
       marginTop: "20px",
     },
   };
-
-  return (
+    return (
     <div style={styles.page}>
       <h1 style={styles.heading}>
-        📊 AI Interview Report
+        👔 AI HR Interview Report
       </h1>
 
+      {/* Overall Score */}
+
       <div style={styles.scoreCard}>
-        <h2>Overall Score</h2>
+        <h2>Overall HR Score</h2>
 
         <div style={styles.score}>
           {score}%
@@ -196,10 +196,13 @@ function Report() {
           {performance}
         </div>
       </div>
-            {/* Strengths */}
+
+      {/* Strengths */}
 
       <div style={styles.card}>
-        <h2 style={styles.title}>💪 Strengths</h2>
+        <h2 style={styles.title}>
+          💪 Strengths
+        </h2>
 
         <ul style={styles.list}>
           {(evaluation.strengths || []).map((item, index) => (
@@ -211,7 +214,9 @@ function Report() {
       {/* Weaknesses */}
 
       <div style={styles.card}>
-        <h2 style={styles.title}>⚠ Weaknesses</h2>
+        <h2 style={styles.title}>
+          ⚠ Weaknesses
+        </h2>
 
         <ul style={styles.list}>
           {(evaluation.weaknesses || []).map((item, index) => (
@@ -223,7 +228,9 @@ function Report() {
       {/* Suggestions */}
 
       <div style={styles.card}>
-        <h2 style={styles.title}>💡 AI Suggestions</h2>
+        <h2 style={styles.title}>
+          💡 AI Suggestions
+        </h2>
 
         <ul style={styles.list}>
           {(evaluation.suggestions || []).map((item, index) => (
@@ -232,7 +239,7 @@ function Report() {
         </ul>
       </div>
 
-      {/* Question Wise Report */}
+      {/* Question Wise Feedback */}
 
       <div style={styles.card}>
         <h2 style={styles.title}>
@@ -286,7 +293,7 @@ function Report() {
         }}
         onClick={downloadPDF}
       >
-        📄 Download PDF Report
+        📄 Download HR Report
       </button>
 
       <button
@@ -294,9 +301,9 @@ function Report() {
           ...styles.button,
           background: "#7c3aed",
         }}
-        onClick={() => navigate("/coding-round")}
+        onClick={() => navigate("/final-report")}
       >
-        💻 Continue to Coding Round
+        🏆 Continue to Final Placement Report
       </button>
 
       <button
@@ -306,10 +313,10 @@ function Report() {
         }}
         onClick={() => navigate("/dashboard")}
       >
-        ← Back to Dashboard
+        🏠 Back to Dashboard
       </button>
     </div>
   );
 }
 
-export default Report;
+export default HRReport;

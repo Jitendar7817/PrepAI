@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import API from "../services/api";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaLightbulb,
+  FaArrowLeft,
+} from "react-icons/fa";
 
 function ResumeAnalyzer() {
   const navigate = useNavigate();
@@ -10,6 +18,37 @@ function ResumeAnalyzer() {
   const [loading, setLoading] = useState(false);
 
   const [analysis, setAnalysis] = useState(null);
+
+  const rating = useMemo(() => {
+    if (!analysis || typeof analysis.atsScore !== "number") return null;
+
+    const score = analysis.atsScore;
+
+    let stars;
+    let label;
+
+    if (score >= 90) {
+      stars = 5;
+      label = "Excellent";
+    } else if (score >= 80) {
+      stars = 4;
+      label = "Very Good";
+    } else if (score >= 70) {
+      stars = 3;
+      label = "Good";
+    } else if (score >= 60) {
+      stars = 2;
+      label = "Average";
+    } else {
+      stars = 1;
+      label = "Needs Improvement";
+    }
+
+    const starDisplay =
+      "⭐".repeat(stars) + "☆".repeat(5 - stars);
+
+    return { stars, label, starDisplay };
+  }, [analysis]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -101,9 +140,13 @@ function ResumeAnalyzer() {
             cursor: "pointer",
             fontWeight: "bold",
             fontSize: "16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
-          Back to Dashboard
+          <FaArrowLeft />
+          &nbsp; Dashboard
         </button>
       </div>
 
@@ -121,8 +164,13 @@ function ResumeAnalyzer() {
           style={{
             color: "#38bdf8",
             marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
           }}
         >
+          <FaUpload color="#38bdf8" />
+          {" "}
           Upload Resume
         </h2>
 
@@ -138,14 +186,18 @@ function ResumeAnalyzer() {
         />
 
         {resume && (
-          <p
+          <div
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
               marginBottom: "20px",
               color: "#cbd5e1",
             }}
           >
-            Selected File: <strong>{resume.name}</strong>
-          </p>
+            <FaFilePdf color="#ef4444" size={22} />
+            <strong>{resume.name}</strong>
+          </div>
         )}
 
         <button
@@ -161,11 +213,20 @@ function ResumeAnalyzer() {
             cursor: loading ? "not-allowed" : "pointer",
             fontSize: "18px",
             fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
           }}
         >
-          {loading
-            ? "Analyzing Resume..."
-            : "Analyze Resume"}
+          {loading ? (
+            "Analyzing Resume..."
+          ) : (
+            <>
+              <FaUpload />
+              &nbsp; Analyze Resume
+            </>
+          )}
         </button>
       </div>
             {/* Resume Analysis */}
@@ -186,7 +247,7 @@ function ResumeAnalyzer() {
               textAlign: "center",
             }}
           >
-            <h2 style={{ color: "#38bdf8" }}>ATS Score</h2>
+            <h2 style={{ color: "#38bdf8" }}>📊 ATS Resume Score</h2>
 
             <h1
               style={{
@@ -197,6 +258,39 @@ function ResumeAnalyzer() {
             >
               {analysis.atsScore}%
             </h1>
+
+            <p
+              style={{
+                marginTop: "10px",
+                color: "#94a3b8",
+              }}
+            >
+              AI Generated Resume Rating
+            </p>
+
+            {rating && (
+              <div style={{ marginTop: "20px" }}>
+                <p
+                  style={{
+                    fontSize: "28px",
+                    letterSpacing: "4px",
+                  }}
+                >
+                  {rating.starDisplay}
+                </p>
+
+                <p
+                  style={{
+                    marginTop: "8px",
+                    color: "#38bdf8",
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                  }}
+                >
+                  {rating.label} Resume
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Skills */}
@@ -207,7 +301,7 @@ function ResumeAnalyzer() {
               borderRadius: "18px",
             }}
           >
-            <h2 style={{ color: "#38bdf8" }}>Skills</h2>
+            <h2 style={{ color: "#38bdf8" }}>✅ Skills Detected</h2>
 
             <ul>
               {(analysis.skills || []).map((skill, index) => (
@@ -224,7 +318,18 @@ function ResumeAnalyzer() {
               borderRadius: "18px",
             }}
           >
-            <h2 style={{ color: "#22c55e" }}>Strengths</h2>
+            <h2
+              style={{
+                color: "#22c55e",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <FaCheckCircle />
+              {" "}
+              Strengths
+            </h2>
 
             <ul>
               {(analysis.strengths || []).map((item, index) => (
@@ -241,7 +346,18 @@ function ResumeAnalyzer() {
               borderRadius: "18px",
             }}
           >
-            <h2 style={{ color: "#ef4444" }}>Weaknesses</h2>
+            <h2
+              style={{
+                color: "#ef4444",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <FaTimesCircle />
+              {" "}
+              Weaknesses
+            </h2>
 
             <ul>
               {(analysis.weaknesses || []).map((item, index) => (
@@ -275,7 +391,18 @@ function ResumeAnalyzer() {
               borderRadius: "18px",
             }}
           >
-            <h2 style={{ color: "#38bdf8" }}>Suggestions</h2>
+            <h2
+              style={{
+                color: "#38bdf8",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <FaLightbulb />
+              {" "}
+              AI Suggestions
+            </h2>
 
             <ul>
               {(analysis.suggestions || []).map((item, index) => (
