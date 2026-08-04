@@ -6,7 +6,7 @@ const protect = require("../middleware/authMiddleware");
 
 const {
   getFinalReport,
-} = require("../controllers/finalReportController");
+} = require("../controllers/FinalReportController");
 
 // ================================
 // Final Placement Report

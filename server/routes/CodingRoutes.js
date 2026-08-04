@@ -8,7 +8,7 @@ const {
   generateQuestion,
   submitCode,
   getCodingHistory,
-} = require("../controllers/codingController");
+} = require("../controllers/CodingController");
 
 // =====================================
 // Generate Coding Question

@@ -9,7 +9,7 @@ const {
   getAllInterviews,
   getInterviewById,
   deleteInterview,
-} = require("../controllers/interviewController");
+} = require("../controllers/InterviewController");
 
 // Protected Routes
 router.post("/create", protect, createInterview);

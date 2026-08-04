@@ -13,10 +13,9 @@ const connectDB = require("./config/db");
 // ==========================
 
 const authRoutes = require("./routes/authRoutes");
+const interviewRoutes = require("./routes/InterviewRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
-
-// IMPORTANT: Linux is case-sensitive
 const codingRoutes = require("./routes/CodingRoutes");
 const hrRoutes = require("./routes/hrRoutes");
 const finalReportRoutes = require("./routes/FinalReportRoutes");
@@ -27,7 +26,10 @@ const app = express();
 // Connect Database
 connectDB();
 
+// ==========================
 // Middlewares
+// ==========================
+
 app.use(cors());
 app.use(express.json());
 
@@ -45,6 +47,9 @@ app.get("/", (req, res) => {
 
 // Authentication
 app.use("/api/auth", authRoutes);
+
+// Interview
+app.use("/api/interview", interviewRoutes);
 
 // AI Interview
 app.use("/api/ai", aiRoutes);
