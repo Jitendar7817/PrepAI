@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axios from "axios";
+import API from "../services/api";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -13,7 +13,6 @@ import SpeechRecognition, {
 const STORAGE_KEY_INTERVIEW = "interview";
 const STORAGE_KEY_START_TIME = "interviewStartTime";
 const STORAGE_KEY_ANSWERS = "answers";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ===========================
 // Helpers
@@ -265,15 +264,10 @@ function Interview() {
       );
 
       // Submit Interview
-      const response = await axios.post(
-        `${API_URL}/api/ai/${interview._id}/submit`,
+      const response = await API.post(
+        `/ai/${interview._id}/submit`,
         {
           answers: answerArray,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
 
